@@ -18,7 +18,14 @@ jobs:
           node-version: '18'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          npm install --legacy-peer-deps
+          npm install --package-lock-only
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add package-lock.json
+          git commit -m "chore: update package-lock.json" || echo "No changes to commit"
+          git push
 
       - name: Build
         run: npm run build
