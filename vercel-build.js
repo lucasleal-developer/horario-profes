@@ -12,14 +12,11 @@ console.log('Iniciando build...');
 console.log('Executando build do Vite...');
 execSync('npm run build', { stdio: 'inherit' });
 
-// Compilar arquivos TypeScript com esbuild
+// Compilar arquivos TypeScript com tsc
 console.log('Compilando arquivos TypeScript...');
 try {
-  // Compilar arquivos do servidor
-  execSync('esbuild server/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/server --alias:@shared=./shared --external:lightningcss --external:@babel/preset-typescript --external:@babel/preset-typescript/package.json --external:mysql2 --external:mysql2/promise --external:pg --external:events --external:stream --external:util --external:net --external:tls --external:crypto --external:fs --external:path --external:url --external:http --external:https --external:zlib --external:buffer --external:ws --external:ws/lib/stream.js --external:express --external:body-parser --external:depd --external:express/lib/express.js --external:body-parser/index.js --external:depd/index.js --external:rollup --external:rollup/dist/native.js --external:rollup/dist/es/parseAst.js --external:node:fs --external:node:path --external:node:url --external:node:http --external:node:https --external:node:stream --external:node:util --external:node:events --external:node:net --external:node:tls --external:node:crypto --external:node:zlib --external:node:buffer', { stdio: 'inherit' });
-  
-  // Compilar arquivos compartilhados
-  execSync('esbuild shared/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/shared --external:lightningcss --external:@babel/preset-typescript --external:@babel/preset-typescript/package.json --external:mysql2 --external:mysql2/promise --external:pg --external:events --external:stream --external:util --external:net --external:tls --external:crypto --external:fs --external:path --external:url --external:http --external:https --external:zlib --external:buffer --external:ws --external:ws/lib/stream.js --external:express --external:body-parser --external:depd --external:express/lib/express.js --external:body-parser/index.js --external:depd/index.js --external:rollup --external:rollup/dist/native.js --external:rollup/dist/es/parseAst.js --external:node:fs --external:node:path --external:node:url --external:node:http --external:node:https --external:node:stream --external:node:util --external:node:events --external:node:net --external:node:tls --external:node:crypto --external:node:zlib --external:node:buffer', { stdio: 'inherit' });
+  // Compilar arquivos do servidor e compartilhados
+  execSync('tsc server/*.ts shared/*.ts --outDir dist --esModuleInterop true', { stdio: 'inherit' });
   
   console.log('Compilação TypeScript concluída com sucesso');
 } catch (error) {
