@@ -42,7 +42,22 @@ console.log('Copiando arquivos da API...');
 const apiDir = path.join(__dirname, 'api');
 const apiFiles = fs.readdirSync(apiDir).filter(file => file.endsWith('.js'));
 
-apiFiles.forEach(file => {
+// Garantir que o arquivo index.js seja copiado primeiro
+const indexFile = apiFiles.find(file => file === 'index.js');
+if (indexFile) {
+  const sourcePath = path.join(apiDir, indexFile);
+  const destPath = path.join(__dirname, 'dist/api', indexFile);
+  console.log(`Copiando ${indexFile}...`);
+  try {
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`Arquivo ${indexFile} copiado com sucesso para ${destPath}`);
+  } catch (error) {
+    console.error(`Erro ao copiar ${indexFile}:`, error);
+  }
+}
+
+// Copiar os outros arquivos da API
+apiFiles.filter(file => file !== 'index.js').forEach(file => {
   const sourcePath = path.join(apiDir, file);
   const destPath = path.join(__dirname, 'dist/api', file);
   console.log(`Copiando ${file}...`);
