@@ -115,6 +115,44 @@ try {
     console.log('Diretório public não encontrado, pulando...');
   }
 
+  // Copiar arquivos do build do Vite para o diretório public
+  console.log('Copiando arquivos do build do Vite...');
+  if (fs.existsSync('dist')) {
+    const distFiles = fs.readdirSync('dist');
+    distFiles.forEach(file => {
+      if (file !== 'server' && file !== 'api' && file !== 'shared') {
+        const sourcePath = path.join('dist', file);
+        const destPath = path.join('dist/public', file);
+        
+        if (fs.statSync(sourcePath).isDirectory()) {
+          // Se for um diretório, copiar recursivamente
+          if (!fs.existsSync(destPath)) {
+            fs.mkdirSync(destPath, { recursive: true });
+          }
+          
+          const subFiles = fs.readdirSync(sourcePath);
+          subFiles.forEach(subFile => {
+            try {
+              fs.copyFileSync(
+                path.join(sourcePath, subFile),
+                path.join(destPath, subFile)
+              );
+            } catch (err) {
+              console.error(`Erro ao copiar arquivo ${subFile}:`, err);
+            }
+          });
+        } else {
+          // Se for um arquivo, copiar diretamente
+          try {
+            fs.copyFileSync(sourcePath, destPath);
+          } catch (err) {
+            console.error(`Erro ao copiar arquivo ${file}:`, err);
+          }
+        }
+      }
+    });
+  }
+
   // Verificar se os arquivos foram compilados
   console.log('Verificando arquivos compilados...');
   const serverFiles = fs.readdirSync('dist/server');
