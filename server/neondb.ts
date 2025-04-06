@@ -54,7 +54,7 @@ async function createTablesIfNotExist() {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS professionals (
           id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
+          name TEXT NOT NULL UNIQUE,
           initials TEXT NOT NULL,
           active INTEGER NOT NULL DEFAULT 1
         )
@@ -68,7 +68,8 @@ async function createTablesIfNotExist() {
           start_time TEXT NOT NULL,
           end_time TEXT NOT NULL,
           interval INTEGER NOT NULL DEFAULT 30,
-          is_base_slot INTEGER NOT NULL DEFAULT 1
+          is_base_slot INTEGER NOT NULL DEFAULT 1,
+          UNIQUE(start_time, end_time)
         )
       `);
       log("Tabela time_slots verificada/criada");
@@ -211,12 +212,35 @@ async function populateDefaultData() {
   }
 }
 
+async function dropTables() {
+  try {
+    log("Removendo tabelas existentes...");
+    
+    await pool.query(`
+      DROP TABLE IF EXISTS schedules;
+      DROP TABLE IF EXISTS time_slots;
+      DROP TABLE IF EXISTS professionals;
+      DROP TABLE IF EXISTS activity_types;
+      DROP TABLE IF EXISTS users;
+    `);
+    
+    log("Tabelas removidas com sucesso");
+    return true;
+  } catch (error) {
+    log(`Erro ao remover tabelas: ${error}`);
+    return false;
+  }
+}
+
 export async function initializeNeonDb() {
   try {
     // Testa a conexão com o banco Neon
     const connected = await testNeonConnection();
     
     if (connected) {
+      // Remove as tabelas existentes
+      await dropTables();
+      
       // Cria as tabelas se não existirem
       const tablesCreated = await createTablesIfNotExist();
       
