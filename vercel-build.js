@@ -76,4 +76,23 @@ if (fs.existsSync(publicSourceDir)) {
   });
 }
 
+// Copia os arquivos da API
+console.log('Copying API files...');
+const apiDir = path.join(__dirname, 'api');
+const distApiDir = path.join(__dirname, 'dist', 'api');
+
+if (!fs.existsSync(distApiDir)) {
+  fs.mkdirSync(distApiDir, { recursive: true });
+}
+
+const apiFiles = fs.readdirSync(apiDir);
+apiFiles.forEach(file => {
+  if (file.endsWith('.js')) {
+    const sourcePath = path.join(apiDir, file);
+    const destPath = path.join(distApiDir, file);
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`Copied ${file} to dist/api/`);
+  }
+});
+
 console.log('Build completed successfully!'); 
