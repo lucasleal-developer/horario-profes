@@ -24,5 +24,6 @@
   },
   "engines": {
     "node": "18.x"
-  }
+  },
+  "packageManager": "npm@10.2.4"
 }
