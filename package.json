@@ -10,10 +10,10 @@
     "postinstall": "tsc"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.39.7",
-    "express": "4.18.3",
+    "@supabase/supabase-js": "2.49.4",
+    "express": "4.21.2",
     "cors": "2.8.5",
-    "dotenv": "16.4.5",
+    "dotenv": "16.4.7",
     "dynamic-dedupe": "0.3.0",
     "minimist": "1.2.8",
     "mkdirp": "1.0.4",
@@ -49,10 +49,10 @@
     "concat-map": "0.0.1"
   },
   "devDependencies": {
-    "typescript": "5.3.3",
+    "typescript": "5.6.3",
     "@types/express": "4.17.21",
     "@types/cors": "2.8.17",
-    "@types/node": "20.11.24",
+    "@types/node": "20.16.11",
     "ts-node-dev": "2.0.0"
   },
   "engines": {
