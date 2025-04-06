@@ -16,7 +16,7 @@ execSync('npm run build', { stdio: 'inherit' });
 console.log('Compilando arquivos TypeScript...');
 try {
   // Compilar arquivos do servidor e compartilhados
-  execSync('tsc server/*.ts shared/*.ts --outDir dist --esModuleInterop true', { stdio: 'inherit' });
+  execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
   
   console.log('Compilação TypeScript concluída com sucesso');
 } catch (error) {
