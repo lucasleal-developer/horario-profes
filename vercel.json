@@ -14,7 +14,8 @@
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "npm run vercel-build",
-        "distDir": "dist/public"
+        "distDir": "dist/public",
+        "installCommand": "npm install"
       }
     }
   ],

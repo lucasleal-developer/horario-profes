@@ -12,9 +12,20 @@ console.log('Iniciando build...');
 console.log('Executando build do Vite...');
 execSync('npm run build', { stdio: 'inherit' });
 
-// Compilar arquivos TypeScript
+// Compilar arquivos TypeScript com esbuild
 console.log('Compilando arquivos TypeScript...');
-execSync('tsc server/*.ts shared/*.ts --outDir dist --esModuleInterop true', { stdio: 'inherit' });
+try {
+  // Compilar arquivos do servidor
+  execSync('esbuild server/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/server --external:@shared/*', { stdio: 'inherit' });
+  
+  // Compilar arquivos compartilhados
+  execSync('esbuild shared/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/shared', { stdio: 'inherit' });
+  
+  console.log('Compilação TypeScript concluída com sucesso');
+} catch (error) {
+  console.error('Erro na compilação TypeScript:', error);
+  process.exit(1);
+}
 
 // Criar diretórios necessários
 console.log('Criando diretórios...');
@@ -23,43 +34,6 @@ dirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     console.log(`Criando diretório ${dir}...`);
     fs.mkdirSync(dir, { recursive: true });
-  }
-});
-
-// Copiar arquivos do servidor
-console.log('Copiando arquivos do servidor...');
-const serverFiles = [
-  'storage.ts',
-  'neonStorage.ts',
-  'db.ts',
-  'neondb.ts',
-  'vite.ts'
-];
-
-serverFiles.forEach(file => {
-  const sourcePath = path.join(__dirname, 'server', file);
-  const destPath = path.join(__dirname, 'dist/server', file.replace('.ts', '.js'));
-  console.log(`Copiando ${file}...`);
-  if (fs.existsSync(sourcePath)) {
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
-  } else {
-    console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
-  }
-});
-
-// Copiar arquivos compartilhados
-console.log('Copiando arquivos compartilhados...');
-const sharedFiles = ['schema.ts'];
-sharedFiles.forEach(file => {
-  const sourcePath = path.join(__dirname, 'shared', file);
-  const destPath = path.join(__dirname, 'dist/shared', file.replace('.ts', '.js'));
-  console.log(`Copiando ${file}...`);
-  if (fs.existsSync(sourcePath)) {
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
-  } else {
-    console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
   }
 });
 
