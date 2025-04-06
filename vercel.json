@@ -10,9 +10,18 @@
       "use": "@vercel/node"
     },
     {
+      "src": "server/**/*.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "shared/**/*.ts",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
+        "buildCommand": "npm run vercel-build",
         "distDir": "dist/public"
       }
     }

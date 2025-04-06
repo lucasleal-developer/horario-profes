@@ -25,20 +25,20 @@ dirs.forEach(dir => {
 // Copiar arquivos do servidor
 console.log('Copiando arquivos do servidor...');
 const serverFiles = [
-  'storage.js',
-  'neonStorage.js',
-  'db.js',
-  'neondb.js',
-  'vite.js'
+  'storage.ts',
+  'neonStorage.ts',
+  'db.ts',
+  'neondb.ts',
+  'vite.ts'
 ];
 
 serverFiles.forEach(file => {
   const sourcePath = path.join(__dirname, 'server', file);
-  const destPath = path.join(__dirname, 'dist/server', file);
+  const destPath = path.join(__dirname, 'dist/server', file.replace('.ts', '.js'));
   console.log(`Copiando ${file}...`);
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso`);
+    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
   } else {
     console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
   }
@@ -46,14 +46,14 @@ serverFiles.forEach(file => {
 
 // Copiar arquivos compartilhados
 console.log('Copiando arquivos compartilhados...');
-const sharedFiles = ['schema.js'];
+const sharedFiles = ['schema.ts'];
 sharedFiles.forEach(file => {
   const sourcePath = path.join(__dirname, 'shared', file);
-  const destPath = path.join(__dirname, 'dist/shared', file);
+  const destPath = path.join(__dirname, 'dist/shared', file.replace('.ts', '.js'));
   console.log(`Copiando ${file}...`);
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso`);
+    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
   } else {
     console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
   }
@@ -78,20 +78,23 @@ apiFiles.forEach(file => {
 
 // Copiar arquivos públicos
 console.log('Copiando arquivos públicos...');
-const publicDir = path.join(__dirname, 'client/public');
-const publicFiles = fs.readdirSync(publicDir);
-
-publicFiles.forEach(file => {
-  const sourcePath = path.join(publicDir, file);
-  const destPath = path.join(__dirname, 'dist/public', file);
-  console.log(`Copiando ${file}...`);
-  if (fs.lstatSync(sourcePath).isDirectory()) {
-    fs.cpSync(sourcePath, destPath, { recursive: true });
-    console.log(`Diretório ${file} copiado com sucesso`);
-  } else {
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso`);
-  }
-});
+const publicDir = path.join(__dirname, 'public');
+if (fs.existsSync(publicDir)) {
+  const publicFiles = fs.readdirSync(publicDir);
+  publicFiles.forEach(file => {
+    const sourcePath = path.join(publicDir, file);
+    const destPath = path.join(__dirname, 'dist/public', file);
+    console.log(`Copiando ${file}...`);
+    if (fs.lstatSync(sourcePath).isDirectory()) {
+      fs.cpSync(sourcePath, destPath, { recursive: true });
+      console.log(`Diretório ${file} copiado com sucesso`);
+    } else {
+      fs.copyFileSync(sourcePath, destPath);
+      console.log(`Arquivo ${file} copiado com sucesso`);
+    }
+  });
+} else {
+  console.log('Diretório public não encontrado, pulando...');
+}
 
 console.log('Build concluído com sucesso!'); 
