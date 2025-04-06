@@ -49,6 +49,14 @@ try {
   console.log('Compilando arquivos TypeScript...');
   execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
 
+  // Executar build do Vite
+  console.log('Executando build do Vite...');
+  try {
+    execSync('npm run build', { stdio: 'inherit' });
+  } catch (error) {
+    console.warn('Aviso: Build do Vite falhou, continuando com o build do servidor...', error);
+  }
+
   // Copiar arquivos da API
   console.log('Copiando arquivos da API...');
   const apiFiles = fs.readdirSync('api');
@@ -117,40 +125,32 @@ try {
 
   // Copiar arquivos do build do Vite para o diretório public
   console.log('Copiando arquivos do build do Vite...');
-  if (fs.existsSync('dist')) {
-    const distFiles = fs.readdirSync('dist');
-    distFiles.forEach(file => {
-      if (file !== 'server' && file !== 'api' && file !== 'shared') {
-        const sourcePath = path.join('dist', file);
-        const destPath = path.join('dist/public', file);
-        
-        if (fs.statSync(sourcePath).isDirectory()) {
-          // Se for um diretório, copiar recursivamente
-          if (!fs.existsSync(destPath)) {
-            fs.mkdirSync(destPath, { recursive: true });
-          }
-          
-          const subFiles = fs.readdirSync(sourcePath);
-          subFiles.forEach(subFile => {
-            try {
-              fs.copyFileSync(
-                path.join(sourcePath, subFile),
-                path.join(destPath, subFile)
-              );
-            } catch (err) {
-              console.error(`Erro ao copiar arquivo ${subFile}:`, err);
-            }
-          });
-        } else {
-          // Se for um arquivo, copiar diretamente
-          try {
-            fs.copyFileSync(sourcePath, destPath);
-          } catch (err) {
-            console.error(`Erro ao copiar arquivo ${file}:`, err);
-          }
+  if (fs.existsSync('dist/client')) {
+    // Copiar todo o conteúdo de dist/client para dist/public
+    const copyRecursive = (src, dest) => {
+      if (fs.statSync(src).isDirectory()) {
+        if (!fs.existsSync(dest)) {
+          fs.mkdirSync(dest, { recursive: true });
+        }
+        const files = fs.readdirSync(src);
+        files.forEach(file => {
+          const srcPath = path.join(src, file);
+          const destPath = path.join(dest, file);
+          copyRecursive(srcPath, destPath);
+        });
+      } else {
+        try {
+          fs.copyFileSync(src, dest);
+          console.log(`Arquivo ${path.relative('dist/client', src)} copiado com sucesso para public`);
+        } catch (err) {
+          console.error(`Erro ao copiar arquivo ${src}:`, err);
         }
       }
-    });
+    };
+
+    copyRecursive('dist/client', 'dist/public');
+  } else {
+    console.warn('Diretório dist/client não encontrado, o frontend pode não estar disponível');
   }
 
   // Verificar se os arquivos foram compilados
