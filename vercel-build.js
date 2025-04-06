@@ -13,12 +13,16 @@ execSync('npm run build', { stdio: 'inherit' });
 // Cria os diretórios necessários
 const serverDir = path.join(__dirname, 'dist', 'server');
 const sharedDir = path.join(__dirname, 'dist', 'shared');
+const publicDir = path.join(__dirname, 'dist', 'public');
 
 if (!fs.existsSync(serverDir)) {
   fs.mkdirSync(serverDir, { recursive: true });
 }
 if (!fs.existsSync(sharedDir)) {
   fs.mkdirSync(sharedDir, { recursive: true });
+}
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
 }
 
 // Copia os arquivos do servidor
@@ -54,5 +58,22 @@ sharedFiles.forEach(file => {
     console.log(`Copied ${file} to dist/shared/`);
   }
 });
+
+// Copia os arquivos públicos
+console.log('Copying public files...');
+const publicSourceDir = path.join(__dirname, 'client', 'public');
+if (fs.existsSync(publicSourceDir)) {
+  const files = fs.readdirSync(publicSourceDir);
+  files.forEach(file => {
+    const sourcePath = path.join(publicSourceDir, file);
+    const destPath = path.join(publicDir, file);
+    if (fs.lstatSync(sourcePath).isDirectory()) {
+      fs.cpSync(sourcePath, destPath, { recursive: true });
+    } else {
+      fs.copyFileSync(sourcePath, destPath);
+    }
+    console.log(`Copied ${file} to dist/public/`);
+  });
+}
 
 console.log('Build completed successfully!'); 
