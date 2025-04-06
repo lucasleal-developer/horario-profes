@@ -45,6 +45,15 @@ try {
     }
   });
 
+  // Copiar vite.config.ts
+  console.log('Copiando vite.config.ts...');
+  try {
+    fs.copyFileSync('vite.config.ts', 'dist/vite.config.ts');
+    console.log('vite.config.ts copiado com sucesso');
+  } catch (err) {
+    console.error('Erro ao copiar vite.config.ts:', err);
+  }
+
   // Compilar arquivos TypeScript
   console.log('Compilando arquivos TypeScript...');
   execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
@@ -57,16 +66,24 @@ try {
     console.warn('Aviso: Build do Vite falhou, continuando com o build do servidor...', error);
   }
 
-  // Copiar arquivos da API
-  console.log('Copiando arquivos da API...');
+  // Copiar e processar arquivos da API
+  console.log('Copiando e processando arquivos da API...');
   const apiFiles = fs.readdirSync('api');
   apiFiles.forEach(file => {
     if (file.endsWith('.js')) {
       try {
-        fs.copyFileSync(`api/${file}`, `dist/api/${file}`);
-        console.log(`Arquivo ${file} copiado com sucesso`);
+        // Ler o conteúdo do arquivo
+        let content = fs.readFileSync(`api/${file}`, 'utf8');
+        
+        // Ajustar importações
+        content = content.replace(/from ['"]\.\.\/server\/(.*?)['"]/g, 'from "../server/$1.js"');
+        content = content.replace(/from ['"]\.\.\/shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
+        
+        // Escrever o arquivo processado
+        fs.writeFileSync(`dist/api/${file}`, content);
+        console.log(`Arquivo ${file} processado e copiado com sucesso`);
       } catch (err) {
-        console.error(`Erro ao copiar arquivo ${file}:`, err);
+        console.error(`Erro ao processar arquivo ${file}:`, err);
       }
     }
   });
@@ -75,7 +92,7 @@ try {
   console.log('Copiando arquivos do diretório shared...');
   const sharedFiles = fs.readdirSync('shared');
   sharedFiles.forEach(file => {
-    if (file.endsWith('.js') || file.endsWith('.d.ts')) {
+    if (file.endsWith('.js') || file.endsWith('.ts')) {
       try {
         fs.copyFileSync(`shared/${file}`, `dist/shared/${file}`);
         console.log(`Arquivo ${file} copiado com sucesso`);
@@ -85,48 +102,44 @@ try {
     }
   });
 
-  // Copiar arquivos públicos
-  console.log('Copiando arquivos públicos...');
-  if (fs.existsSync('public')) {
-    const publicFiles = fs.readdirSync('public');
-    publicFiles.forEach(file => {
-      const sourcePath = path.join('public', file);
-      const destPath = path.join('dist/public', file);
-      
-      if (fs.statSync(sourcePath).isDirectory()) {
-        // Se for um diretório, copiar recursivamente
-        if (!fs.existsSync(destPath)) {
-          fs.mkdirSync(destPath, { recursive: true });
-        }
-        
-        const subFiles = fs.readdirSync(sourcePath);
-        subFiles.forEach(subFile => {
-          try {
-            fs.copyFileSync(
-              path.join(sourcePath, subFile),
-              path.join(destPath, subFile)
-            );
-          } catch (err) {
-            console.error(`Erro ao copiar arquivo ${subFile}:`, err);
-          }
-        });
-      } else {
-        // Se for um arquivo, copiar diretamente
-        try {
-          fs.copyFileSync(sourcePath, destPath);
-        } catch (err) {
-          console.error(`Erro ao copiar arquivo ${file}:`, err);
-        }
-      }
-    });
-  } else {
-    console.log('Diretório public não encontrado, pulando...');
+  // Verificar se os arquivos foram compilados
+  console.log('Verificando arquivos compilados...');
+  const serverFiles = fs.readdirSync('dist/server');
+  console.log('Arquivos no diretório dist/server:', serverFiles);
+
+  // Verificar se os arquivos necessários foram compilados
+  const requiredFiles = ['neonStorage.js', 'storage.js', 'vite.js'];
+  for (const file of requiredFiles) {
+    if (!fs.existsSync(`dist/server/${file}`)) {
+      console.error(`Arquivo ${file} não foi compilado corretamente.`);
+      process.exit(1);
+    }
   }
+
+  // Ajustar caminhos de importação nos arquivos compilados
+  console.log('Ajustando caminhos de importação...');
+  serverFiles.forEach(file => {
+    if (file.endsWith('.js')) {
+      try {
+        const filePath = path.join('dist/server', file);
+        let content = fs.readFileSync(filePath, 'utf8');
+        
+        // Substituir importações
+        content = content.replace(/from ['"]@shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
+        content = content.replace(/from ['"]\.\/([^'"]+)['"]/g, 'from "./$1.js"');
+        content = content.replace(/from ['"]\.\.\/vite\.config['"]/g, 'from "../vite.config.js"');
+        
+        fs.writeFileSync(filePath, content);
+        console.log(`Caminhos de importação ajustados em ${file}`);
+      } catch (err) {
+        console.error(`Erro ao ajustar caminhos de importação em ${file}:`, err);
+      }
+    }
+  });
 
   // Copiar arquivos do build do Vite para o diretório public
   console.log('Copiando arquivos do build do Vite...');
   if (fs.existsSync('dist/client')) {
-    // Copiar todo o conteúdo de dist/client para dist/public
     const copyRecursive = (src, dest) => {
       if (fs.statSync(src).isDirectory()) {
         if (!fs.existsSync(dest)) {
@@ -149,45 +162,7 @@ try {
     };
 
     copyRecursive('dist/client', 'dist/public');
-  } else {
-    console.warn('Diretório dist/client não encontrado, o frontend pode não estar disponível');
   }
-
-  // Verificar se os arquivos foram compilados
-  console.log('Verificando arquivos compilados...');
-  const serverFiles = fs.readdirSync('dist/server');
-  console.log('Arquivos no diretório dist/server:', serverFiles);
-
-  // Verificar se os arquivos necessários foram compilados
-  const requiredFiles = ['neonStorage.js', 'storage.js'];
-  for (const file of requiredFiles) {
-    if (!fs.existsSync(`dist/server/${file}`)) {
-      console.error(`Arquivo ${file} não foi compilado corretamente.`);
-      process.exit(1);
-    }
-  }
-
-  // Ajustar caminhos de importação nos arquivos compilados
-  console.log('Ajustando caminhos de importação...');
-  serverFiles.forEach(file => {
-    if (file.endsWith('.js')) {
-      try {
-        const filePath = path.join('dist/server', file);
-        let content = fs.readFileSync(filePath, 'utf8');
-        
-        // Substituir importações com @shared
-        content = content.replace(/from ['"]@shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
-        
-        // Adicionar extensão .js para importações locais
-        content = content.replace(/from ['"]\.\/([^'"]+)['"]/g, 'from "./$1.js"');
-        
-        fs.writeFileSync(filePath, content);
-        console.log(`Caminhos de importação ajustados em ${file}`);
-      } catch (err) {
-        console.error(`Erro ao ajustar caminhos de importação em ${file}:`, err);
-      }
-    }
-  });
 
   console.log('Build concluído com sucesso!');
 } catch (error) {
