@@ -9,6 +9,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 console.log('Iniciando build...');
 
 try {
+  // Remover node_modules e package-lock.json
+  console.log('Removendo node_modules e package-lock.json...');
+  if (fs.existsSync('node_modules')) {
+    fs.rmSync('node_modules', { recursive: true, force: true });
+  }
+  if (fs.existsSync('package-lock.json')) {
+    fs.unlinkSync('package-lock.json');
+  }
+
+  // Reinstalar dependências
+  console.log('Reinstalando dependências...');
+  execSync('npm install', { stdio: 'inherit' });
+
   // Executar o build do Vite
   console.log('Executando build do Vite...');
   execSync('npm run build', { stdio: 'inherit' });
