@@ -117,8 +117,8 @@ try {
         // Substituir importações com @shared
         content = content.replace(/from ['"]@shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
         
-        // Adicionar extensão .js para importações locais
-        content = content.replace(/from ['"]\.\/([^'"]+)['"]/g, 'from "./$1.js"');
+        // Adicionar extensão .js para importações locais que não já a possuem
+        content = content.replace(/from ['"]\.\/([^'"]+)(?!\.js['"])['"]/g, 'from "./$1.js"');
         
         fs.writeFileSync(filePath, content);
         console.log(`Caminhos de importação ajustados em ${file}`);
