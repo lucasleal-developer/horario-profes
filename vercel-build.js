@@ -3,88 +3,113 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Obter o diretório atual
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log('Iniciando build...');
 
-// Executar build do Vite
-console.log('Executando build do Vite...');
-execSync('npm run build', { stdio: 'inherit' });
-
-// Compilar arquivos TypeScript com tsc
-console.log('Compilando arquivos TypeScript...');
 try {
-  // Compilar arquivos do servidor e compartilhados
+  // Executar o build do Vite
+  console.log('Executando build do Vite...');
+  execSync('npm run build', { stdio: 'inherit' });
+
+  // Compilar arquivos TypeScript
+  console.log('Compilando arquivos TypeScript...');
   execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
-  
-  console.log('Compilação TypeScript concluída com sucesso');
-} catch (error) {
-  console.error('Erro na compilação TypeScript:', error);
-  process.exit(1);
-}
 
-// Criar diretórios necessários
-console.log('Criando diretórios...');
-const dirs = ['dist/server', 'dist/shared', 'dist/public', 'dist/api'];
-dirs.forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    console.log(`Criando diretório ${dir}...`);
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
-
-// Copiar arquivos da API
-console.log('Copiando arquivos da API...');
-const apiDir = path.join(__dirname, 'api');
-const apiFiles = fs.readdirSync(apiDir).filter(file => file.endsWith('.js'));
-
-// Garantir que o arquivo index.js seja copiado primeiro
-const indexFile = apiFiles.find(file => file === 'index.js');
-if (indexFile) {
-  const sourcePath = path.join(apiDir, indexFile);
-  const destPath = path.join(__dirname, 'dist/api', indexFile);
-  console.log(`Copiando ${indexFile}...`);
-  try {
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${indexFile} copiado com sucesso para ${destPath}`);
-  } catch (error) {
-    console.error(`Erro ao copiar ${indexFile}:`, error);
-  }
-}
-
-// Copiar os outros arquivos da API
-apiFiles.filter(file => file !== 'index.js').forEach(file => {
-  const sourcePath = path.join(apiDir, file);
-  const destPath = path.join(__dirname, 'dist/api', file);
-  console.log(`Copiando ${file}...`);
-  try {
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
-  } catch (error) {
-    console.error(`Erro ao copiar ${file}:`, error);
-  }
-});
-
-// Copiar arquivos públicos
-console.log('Copiando arquivos públicos...');
-const publicDir = path.join(__dirname, 'public');
-if (fs.existsSync(publicDir)) {
-  const publicFiles = fs.readdirSync(publicDir);
-  publicFiles.forEach(file => {
-    const sourcePath = path.join(publicDir, file);
-    const destPath = path.join(__dirname, 'dist/public', file);
-    console.log(`Copiando ${file}...`);
-    if (fs.lstatSync(sourcePath).isDirectory()) {
-      fs.cpSync(sourcePath, destPath, { recursive: true });
-      console.log(`Diretório ${file} copiado com sucesso`);
-    } else {
-      fs.copyFileSync(sourcePath, destPath);
-      console.log(`Arquivo ${file} copiado com sucesso`);
+  // Criar diretórios necessários
+  console.log('Criando diretórios...');
+  const dirs = ['dist/server', 'dist/shared', 'dist/public', 'dist/api'];
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
   });
-} else {
-  console.log('Diretório public não encontrado, pulando...');
-}
 
-console.log('Build concluído com sucesso!'); 
+  // Copiar arquivos da API
+  console.log('Copiando arquivos da API...');
+  const apiFiles = fs.readdirSync('api');
+  apiFiles.forEach(file => {
+    if (file.endsWith('.js')) {
+      try {
+        fs.copyFileSync(`api/${file}`, `dist/api/${file}`);
+        console.log(`Arquivo ${file} copiado com sucesso`);
+      } catch (err) {
+        console.error(`Erro ao copiar arquivo ${file}:`, err);
+      }
+    }
+  });
+
+  // Copiar arquivos do diretório shared
+  console.log('Copiando arquivos do diretório shared...');
+  const sharedFiles = fs.readdirSync('shared');
+  sharedFiles.forEach(file => {
+    if (file.endsWith('.js') || file.endsWith('.d.ts')) {
+      try {
+        fs.copyFileSync(`shared/${file}`, `dist/shared/${file}`);
+        console.log(`Arquivo ${file} copiado com sucesso`);
+      } catch (err) {
+        console.error(`Erro ao copiar arquivo ${file}:`, err);
+      }
+    }
+  });
+
+  // Copiar arquivos públicos
+  console.log('Copiando arquivos públicos...');
+  const publicFiles = fs.readdirSync('public');
+  publicFiles.forEach(file => {
+    const sourcePath = path.join('public', file);
+    const destPath = path.join('dist/public', file);
+    
+    if (fs.statSync(sourcePath).isDirectory()) {
+      // Se for um diretório, copiar recursivamente
+      if (!fs.existsSync(destPath)) {
+        fs.mkdirSync(destPath, { recursive: true });
+      }
+      
+      const subFiles = fs.readdirSync(sourcePath);
+      subFiles.forEach(subFile => {
+        try {
+          fs.copyFileSync(
+            path.join(sourcePath, subFile),
+            path.join(destPath, subFile)
+          );
+        } catch (err) {
+          console.error(`Erro ao copiar arquivo ${subFile}:`, err);
+        }
+      });
+    } else {
+      // Se for um arquivo, copiar diretamente
+      try {
+        fs.copyFileSync(sourcePath, destPath);
+      } catch (err) {
+        console.error(`Erro ao copiar arquivo ${file}:`, err);
+      }
+    }
+  });
+
+  // Ajustar caminhos de importação nos arquivos compilados
+  console.log('Ajustando caminhos de importação...');
+  const serverFiles = fs.readdirSync('dist/server');
+  serverFiles.forEach(file => {
+    if (file.endsWith('.js')) {
+      try {
+        const filePath = path.join('dist/server', file);
+        let content = fs.readFileSync(filePath, 'utf8');
+        
+        // Substituir importações com @shared
+        content = content.replace(/from ['"]@shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
+        
+        fs.writeFileSync(filePath, content);
+        console.log(`Caminhos de importação ajustados em ${file}`);
+      } catch (err) {
+        console.error(`Erro ao ajustar caminhos de importação em ${file}:`, err);
+      }
+    }
+  });
+
+  console.log('Build concluído com sucesso!');
+} catch (error) {
+  console.error('Erro durante o build:', error);
+  process.exit(1);
+} 
