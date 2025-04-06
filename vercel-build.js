@@ -106,6 +106,12 @@ try {
     console.error('Erro ao copiar arquivo storage.js:', err);
   }
 
+  // Verificar se o arquivo neonStorage.js foi compilado
+  if (!fs.existsSync('dist/server/neonStorage.js')) {
+    console.error('Arquivo neonStorage.js não foi compilado corretamente.');
+    process.exit(1);
+  }
+
   // Ajustar caminhos de importação nos arquivos compilados
   console.log('Ajustando caminhos de importação...');
   serverFiles.forEach(file => {
