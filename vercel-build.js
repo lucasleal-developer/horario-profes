@@ -56,37 +56,41 @@ try {
 
   // Copiar arquivos públicos
   console.log('Copiando arquivos públicos...');
-  const publicFiles = fs.readdirSync('public');
-  publicFiles.forEach(file => {
-    const sourcePath = path.join('public', file);
-    const destPath = path.join('dist/public', file);
-    
-    if (fs.statSync(sourcePath).isDirectory()) {
-      // Se for um diretório, copiar recursivamente
-      if (!fs.existsSync(destPath)) {
-        fs.mkdirSync(destPath, { recursive: true });
-      }
+  if (fs.existsSync('public')) {
+    const publicFiles = fs.readdirSync('public');
+    publicFiles.forEach(file => {
+      const sourcePath = path.join('public', file);
+      const destPath = path.join('dist/public', file);
       
-      const subFiles = fs.readdirSync(sourcePath);
-      subFiles.forEach(subFile => {
-        try {
-          fs.copyFileSync(
-            path.join(sourcePath, subFile),
-            path.join(destPath, subFile)
-          );
-        } catch (err) {
-          console.error(`Erro ao copiar arquivo ${subFile}:`, err);
+      if (fs.statSync(sourcePath).isDirectory()) {
+        // Se for um diretório, copiar recursivamente
+        if (!fs.existsSync(destPath)) {
+          fs.mkdirSync(destPath, { recursive: true });
         }
-      });
-    } else {
-      // Se for um arquivo, copiar diretamente
-      try {
-        fs.copyFileSync(sourcePath, destPath);
-      } catch (err) {
-        console.error(`Erro ao copiar arquivo ${file}:`, err);
+        
+        const subFiles = fs.readdirSync(sourcePath);
+        subFiles.forEach(subFile => {
+          try {
+            fs.copyFileSync(
+              path.join(sourcePath, subFile),
+              path.join(destPath, subFile)
+            );
+          } catch (err) {
+            console.error(`Erro ao copiar arquivo ${subFile}:`, err);
+          }
+        });
+      } else {
+        // Se for um arquivo, copiar diretamente
+        try {
+          fs.copyFileSync(sourcePath, destPath);
+        } catch (err) {
+          console.error(`Erro ao copiar arquivo ${file}:`, err);
+        }
       }
-    }
-  });
+    });
+  } else {
+    console.log('Diretório public não encontrado, pulando...');
+  }
 
   // Ajustar caminhos de importação nos arquivos compilados
   console.log('Ajustando caminhos de importação...');
