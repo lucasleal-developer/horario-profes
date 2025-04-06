@@ -13,10 +13,6 @@ try {
   console.log('Executando build do Vite...');
   execSync('npm run build', { stdio: 'inherit' });
 
-  // Compilar arquivos TypeScript
-  console.log('Compilando arquivos TypeScript...');
-  execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
-
   // Criar diretórios necessários
   console.log('Criando diretórios...');
   const dirs = ['dist/server', 'dist/shared', 'dist/public', 'dist/api'];
@@ -25,6 +21,24 @@ try {
       fs.mkdirSync(dir, { recursive: true });
     }
   });
+
+  // Copiar arquivos TypeScript do servidor
+  console.log('Copiando arquivos TypeScript do servidor...');
+  const serverTsFiles = fs.readdirSync('server');
+  serverTsFiles.forEach(file => {
+    if (file.endsWith('.ts')) {
+      try {
+        fs.copyFileSync(`server/${file}`, `dist/server/${file}`);
+        console.log(`Arquivo ${file} copiado com sucesso`);
+      } catch (err) {
+        console.error(`Erro ao copiar arquivo ${file}:`, err);
+      }
+    }
+  });
+
+  // Compilar arquivos TypeScript
+  console.log('Compilando arquivos TypeScript...');
+  execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
 
   // Copiar arquivos da API
   console.log('Copiando arquivos da API...');
