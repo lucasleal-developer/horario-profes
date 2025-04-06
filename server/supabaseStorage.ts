@@ -10,6 +10,11 @@ import {
   defaultActivityTypes
 } from '@shared/schema';
 
+// Interface para o resultado da consulta de contagem
+interface CountResult {
+  count: number;
+}
+
 export class SupabaseStorage implements IStorage {
   constructor() {
     // Inicializa as tabelas básicas
@@ -32,7 +37,11 @@ export class SupabaseStorage implements IStorage {
           console.log("Tabela activity_types existe no Supabase");
           
           // Verifica quantos registros existem na tabela activity_types
-          const { count } = existingActivityTypes || { count: 0 };
+          let count = 0;
+          if (existingActivityTypes && Array.isArray(existingActivityTypes) && existingActivityTypes.length > 0) {
+            const result = existingActivityTypes[0] as unknown as CountResult;
+            count = result?.count || 0;
+          }
           
           // Se não houver registros, insere os tipos de atividade padrão
           if (count === 0) {
@@ -56,7 +65,11 @@ export class SupabaseStorage implements IStorage {
           console.log("Tabela time_slots existe no Supabase");
           
           // Verifica quantos registros existem na tabela time_slots
-          const { count } = existingTimeSlots || { count: 0 };
+          let count = 0;
+          if (existingTimeSlots && Array.isArray(existingTimeSlots) && existingTimeSlots.length > 0) {
+            const result = existingTimeSlots[0] as unknown as CountResult;
+            count = result?.count || 0;
+          }
           
           // Se não houver registros, insere os slots de tempo padrão
           if (count === 0) {
@@ -80,7 +93,11 @@ export class SupabaseStorage implements IStorage {
           console.log("Tabela professionals existe no Supabase");
           
           // Verifica quantos registros existem na tabela professionals
-          const { count } = existingProfessionals || { count: 0 };
+          let count = 0;
+          if (existingProfessionals && Array.isArray(existingProfessionals) && existingProfessionals.length > 0) {
+            const result = existingProfessionals[0] as unknown as CountResult;
+            count = result?.count || 0;
+          }
           
           // Se não houver registros, insere os profissionais padrão
           if (count === 0) {
