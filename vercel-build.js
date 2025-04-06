@@ -22,6 +22,15 @@ try {
     }
   });
 
+  // Copiar arquivo vite.config.ts para o diretório dist
+  console.log('Copiando arquivo vite.config.ts...');
+  try {
+    fs.copyFileSync('vite.config.ts', 'dist/vite.config.ts');
+    console.log('Arquivo vite.config.ts copiado com sucesso');
+  } catch (err) {
+    console.error('Erro ao copiar arquivo vite.config.ts:', err);
+  }
+
   // Copiar arquivos TypeScript do servidor
   console.log('Copiando arquivos TypeScript do servidor...');
   const serverTsFiles = fs.readdirSync('server');
@@ -112,7 +121,7 @@ try {
   console.log('Arquivos no diretório dist/server:', serverFiles);
 
   // Verificar se os arquivos necessários foram compilados
-  const requiredFiles = ['neonStorage.js', 'storage.js'];
+  const requiredFiles = ['neonStorage.js', 'storage.js', 'vite.js'];
   for (const file of requiredFiles) {
     if (!fs.existsSync(`dist/server/${file}`)) {
       console.error(`Arquivo ${file} não foi compilado corretamente.`);
@@ -133,6 +142,9 @@ try {
         
         // Adicionar extensão .js para importações locais
         content = content.replace(/from ['"]\.\/([^'"]+)['"]/g, 'from "./$1.js"');
+        
+        // Ajustar importação do vite.config
+        content = content.replace(/from ['"]\.\.\/vite\.config['"]/g, 'from "../vite.config.js"');
         
         fs.writeFileSync(filePath, content);
         console.log(`Caminhos de importação ajustados em ${file}`);
