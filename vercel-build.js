@@ -16,10 +16,10 @@ execSync('npm run build', { stdio: 'inherit' });
 console.log('Compilando arquivos TypeScript...');
 try {
   // Compilar arquivos do servidor
-  execSync('esbuild server/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/server --external:@shared/* --external:lightningcss --external:@babel/preset-typescript --external:@babel/preset-typescript/package.json --external:mysql2 --external:mysql2/promise', { stdio: 'inherit' });
+  execSync('esbuild server/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/server --alias:@shared=./shared', { stdio: 'inherit' });
   
   // Compilar arquivos compartilhados
-  execSync('esbuild shared/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/shared --external:lightningcss --external:@babel/preset-typescript --external:@babel/preset-typescript/package.json --external:mysql2 --external:mysql2/promise', { stdio: 'inherit' });
+  execSync('esbuild shared/*.ts --bundle --platform=node --target=node18 --format=esm --outdir=dist/shared', { stdio: 'inherit' });
   
   console.log('Compilação TypeScript concluída com sucesso');
 } catch (error) {
