@@ -92,6 +92,15 @@ try {
     console.log('Diretório public não encontrado, pulando...');
   }
 
+  // Copiar arquivo storage.js para o diretório dist/server
+  console.log('Copiando arquivo storage.js...');
+  try {
+    fs.copyFileSync('server/storage.js', 'dist/server/storage.js');
+    console.log('Arquivo storage.js copiado com sucesso');
+  } catch (err) {
+    console.error('Erro ao copiar arquivo storage.js:', err);
+  }
+
   // Ajustar caminhos de importação nos arquivos compilados
   console.log('Ajustando caminhos de importação...');
   const serverFiles = fs.readdirSync('dist/server');
