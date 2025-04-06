@@ -6,27 +6,24 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Executa o build do Vite
-console.log('Building Vite frontend...');
+console.log('Iniciando build...');
+
+// Executar build do Vite
+console.log('Executando build do Vite...');
 execSync('npm run build', { stdio: 'inherit' });
 
-// Cria os diretórios necessários
-const serverDir = path.join(__dirname, 'dist', 'server');
-const sharedDir = path.join(__dirname, 'dist', 'shared');
-const publicDir = path.join(__dirname, 'dist', 'public');
+// Criar diretórios necessários
+console.log('Criando diretórios...');
+const dirs = ['dist/server', 'dist/shared', 'dist/public', 'dist/api'];
+dirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    console.log(`Criando diretório ${dir}...`);
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
-if (!fs.existsSync(serverDir)) {
-  fs.mkdirSync(serverDir, { recursive: true });
-}
-if (!fs.existsSync(sharedDir)) {
-  fs.mkdirSync(sharedDir, { recursive: true });
-}
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
-}
-
-// Copia os arquivos do servidor
-console.log('Copying server files...');
+// Copiar arquivos do servidor
+console.log('Copiando arquivos do servidor...');
 const serverFiles = [
   'storage.js',
   'neonStorage.js',
@@ -37,62 +34,64 @@ const serverFiles = [
 
 serverFiles.forEach(file => {
   const sourcePath = path.join(__dirname, 'server', file);
-  const destPath = path.join(serverDir, file);
+  const destPath = path.join(__dirname, 'dist/server', file);
+  console.log(`Copiando ${file}...`);
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`Copied ${file} to dist/server/`);
+    console.log(`Arquivo ${file} copiado com sucesso`);
+  } else {
+    console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
   }
 });
 
-// Copia os arquivos compartilhados
-console.log('Copying shared files...');
-const sharedFiles = [
-  'schema.js'
-];
-
+// Copiar arquivos compartilhados
+console.log('Copiando arquivos compartilhados...');
+const sharedFiles = ['schema.js'];
 sharedFiles.forEach(file => {
   const sourcePath = path.join(__dirname, 'shared', file);
-  const destPath = path.join(sharedDir, file);
+  const destPath = path.join(__dirname, 'dist/shared', file);
+  console.log(`Copiando ${file}...`);
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`Copied ${file} to dist/shared/`);
+    console.log(`Arquivo ${file} copiado com sucesso`);
+  } else {
+    console.error(`Arquivo ${file} não encontrado em ${sourcePath}`);
   }
 });
 
-// Copia os arquivos públicos
-console.log('Copying public files...');
-const publicSourceDir = path.join(__dirname, 'client', 'public');
-if (fs.existsSync(publicSourceDir)) {
-  const files = fs.readdirSync(publicSourceDir);
-  files.forEach(file => {
-    const sourcePath = path.join(publicSourceDir, file);
-    const destPath = path.join(publicDir, file);
-    if (fs.lstatSync(sourcePath).isDirectory()) {
-      fs.cpSync(sourcePath, destPath, { recursive: true });
-    } else {
-      fs.copyFileSync(sourcePath, destPath);
-    }
-    console.log(`Copied ${file} to dist/public/`);
-  });
-}
-
-// Copia os arquivos da API
-console.log('Copying API files...');
+// Copiar arquivos da API
+console.log('Copiando arquivos da API...');
 const apiDir = path.join(__dirname, 'api');
-const distApiDir = path.join(__dirname, 'dist', 'api');
+const apiFiles = fs.readdirSync(apiDir).filter(file => file.endsWith('.js'));
 
-if (!fs.existsSync(distApiDir)) {
-  fs.mkdirSync(distApiDir, { recursive: true });
-}
-
-const apiFiles = fs.readdirSync(apiDir);
 apiFiles.forEach(file => {
-  if (file.endsWith('.js')) {
-    const sourcePath = path.join(apiDir, file);
-    const destPath = path.join(distApiDir, file);
+  const sourcePath = path.join(apiDir, file);
+  const destPath = path.join(__dirname, 'dist/api', file);
+  console.log(`Copiando ${file}...`);
+  try {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`Copied ${file} to dist/api/`);
+    console.log(`Arquivo ${file} copiado com sucesso para ${destPath}`);
+  } catch (error) {
+    console.error(`Erro ao copiar ${file}:`, error);
   }
 });
 
-console.log('Build completed successfully!'); 
+// Copiar arquivos públicos
+console.log('Copiando arquivos públicos...');
+const publicDir = path.join(__dirname, 'client/public');
+const publicFiles = fs.readdirSync(publicDir);
+
+publicFiles.forEach(file => {
+  const sourcePath = path.join(publicDir, file);
+  const destPath = path.join(__dirname, 'dist/public', file);
+  console.log(`Copiando ${file}...`);
+  if (fs.lstatSync(sourcePath).isDirectory()) {
+    fs.cpSync(sourcePath, destPath, { recursive: true });
+    console.log(`Diretório ${file} copiado com sucesso`);
+  } else {
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`Arquivo ${file} copiado com sucesso`);
+  }
+});
+
+console.log('Build concluído com sucesso!'); 
