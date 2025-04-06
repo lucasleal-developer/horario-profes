@@ -92,6 +92,11 @@ try {
     console.log('Diretório public não encontrado, pulando...');
   }
 
+  // Verificar se o arquivo neonStorage.js foi compilado
+  console.log('Verificando arquivos compilados...');
+  const serverFiles = fs.readdirSync('dist/server');
+  console.log('Arquivos no diretório dist/server:', serverFiles);
+
   // Copiar arquivo storage.js para o diretório dist/server
   console.log('Copiando arquivo storage.js...');
   try {
@@ -100,11 +105,6 @@ try {
   } catch (err) {
     console.error('Erro ao copiar arquivo storage.js:', err);
   }
-
-  // Verificar se o arquivo neonStorage.js foi compilado
-  console.log('Verificando arquivos compilados...');
-  const serverFiles = fs.readdirSync('dist/server');
-  console.log('Arquivos no diretório dist/server:', serverFiles);
 
   // Ajustar caminhos de importação nos arquivos compilados
   console.log('Ajustando caminhos de importação...');
@@ -116,9 +116,6 @@ try {
         
         // Substituir importações com @shared
         content = content.replace(/from ['"]@shared\/(.*?)['"]/g, 'from "../shared/$1.js"');
-        
-        // Adicionar extensão .js para importações locais que não já a possuem
-        content = content.replace(/from ['"]\.\/([^'"]+)(?!\.js['"])['"]/g, 'from "./$1.js"');
         
         fs.writeFileSync(filePath, content);
         console.log(`Caminhos de importação ajustados em ${file}`);
