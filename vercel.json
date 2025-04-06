@@ -15,7 +15,7 @@
       "config": {
         "buildCommand": "npm run vercel-build",
         "distDir": "dist/public",
-        "installCommand": "npm install"
+        "installCommand": "npm run vercel-build:install"
       }
     }
   ],
